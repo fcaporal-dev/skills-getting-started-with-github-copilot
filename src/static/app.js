@@ -13,10 +13,14 @@ document.addEventListener("DOMContentLoaded", () => {
       // Clear loading message
       activitiesList.innerHTML = "";
 
+      // Svuota la select prima di riempirla di nuovo
+      activitySelect.innerHTML = '<option value="">-- Select an activity --</option>';
+
       // Populate activities list
       Object.entries(activities).forEach(([name, details]) => {
         const activityCard = document.createElement("div");
         activityCard.className = "activity-card";
+        activityCard.setAttribute("data-activity-id", name); // AGGIUNGI QUESTA RIGA
 
         const spotsLeft = details.max_participants - details.participants.length;
 
@@ -76,10 +80,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
       const result = await response.json();
 
+      // Scrolla sempre all'attività selezionata
+      scrollToActivity(activity);
+
       if (response.ok) {
         messageDiv.textContent = result.message;
         messageDiv.className = "success";
         signupForm.reset();
+        fetchActivities(); // Aggiorna la lista delle attività/partecipanti
       } else {
         messageDiv.textContent = result.detail || "An error occurred";
         messageDiv.className = "error";
@@ -99,6 +107,42 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
+  // Funzione per scrollare all'attività
+  function scrollToActivity(activityId) {
+    const activityElem = document.querySelector(`[data-activity-id="${activityId}"]`);
+    if (activityElem) {
+      activityElem.classList.add('highlighted');
+      activityElem.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      setTimeout(() => {
+        activityElem.classList.remove('highlighted');
+      }, 2000);
+    }
+  }
+
+  function showAlreadySubscribedError(activityId) {
+    // Evidenzia l'attività
+    const activityElem = document.querySelector(`[data-activity-id="${activityId}"]`);
+    if (activityElem) {
+      activityElem.classList.add('highlighted');
+      // Scrolla l'elemento in vista
+      activityElem.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+    // Mostra il messaggio di errore
+    const errorDiv = document.getElementById('error-message');
+    if (errorDiv) {
+      errorDiv.textContent = 'Sei già iscritto a questa attività!';
+      errorDiv.style.display = 'block';
+    }
+  }
+
   // Initialize app
   fetchActivities();
 });
+
+// CSS per evidenziare
+/*
+.highlighted {
+  background-color: #ffeeba;
+  border: 2px solid #f5c518;
+}
+*/
